@@ -1,0 +1,1 @@
+Wizard vs IRS is a game where as a wizard, you have to escape taxes by defending yourself from IRS agents.

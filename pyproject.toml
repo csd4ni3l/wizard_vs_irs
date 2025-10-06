@@ -1,0 +1,10 @@
+[project]
+name = "wizard_vs_irs"
+version = "0.1.0"
+description = "Wizard vs IRS"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+ "arcade==3.2.0",
+ "pypresence>=4.3.0",
+]
