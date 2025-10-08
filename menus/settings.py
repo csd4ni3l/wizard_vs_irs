@@ -1,4 +1,4 @@
-import copy, pypresence, json, os
+import copy, pypresence, json
 
 import arcade, arcade.gui
 

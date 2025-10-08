@@ -7,6 +7,27 @@ menu_background_color = (30, 30, 47)
 log_dir = 'logs'
 discord_presence_id = 1424784736726945915
 
+IRS_AGENT_SPAWN_INTERVAL = 1
+IRS_AGENT_SPEED = 1
+TAX_PER_IRS_AGENT = 200
+
+TAX_EVASION_LEVELS = {"Compliant Citizen": 0, "Suspicious": 1, "Under Review": 1500, "Flagged": 3500, "Audited": 10000, "Criminal Case": 20000, "Most Wanted": 50000, "Legendary": 100000}
+TAX_EVASION_NAMES = list(TAX_EVASION_LEVELS.keys())
+
+BULLET_SPEED = 5
+SPEED_INCREASE_PER_LEVEL = 0.5
+SPAWN_INTERVAL_DECREASE_PER_LEVEL = 0.1
+TAX_INCREASE_PER_LEVEL = 50
+
+SHOP_ITEMS = []
+
+INVENTORY_ITEMS = [
+    ["Fireball"],
+    ["Lightning Bolt"],
+    ["Ice Blast"],
+    ["Arcane Beam"],
+]
+
 button_style = {'normal': UITextureButtonStyle(font_name="Roboto", font_color=arcade.color.BLACK), 'hover': UITextureButtonStyle(font_name="Roboto", font_color=arcade.color.BLACK),
                 'press': UITextureButtonStyle(font_name="Roboto", font_color=arcade.color.BLACK), 'disabled': UITextureButtonStyle(font_name="Roboto", font_color=arcade.color.BLACK)}
 big_button_style = {'normal': UITextureButtonStyle(font_name="Roboto", font_color=arcade.color.BLACK, font_size=26), 'hover': UITextureButtonStyle(font_name="Roboto", font_color=arcade.color.BLACK, font_size=26),
