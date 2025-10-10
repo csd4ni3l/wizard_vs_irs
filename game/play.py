@@ -4,17 +4,16 @@ from utils.constants import BULLET_SPEED, IRS_AGENT_HEALTH, HEALTH_INCREASE_PER_
 from utils.constants import IRS_AGENT_SPAWN_INTERVAL, SPAWN_INTERVAL_DECREASE_PER_LEVEL, SPEED_INCREASE_PER_LEVEL
 from utils.constants import TAX_EVASION_LEVELS, TAX_EVASION_NAMES, TAX_INCREASE_PER_LEVEL, menu_background_color, INVENTORY_ITEMS, INVENTORY_TRIGGER_KEYS
 
+import utils.preload
 from utils.preload import irs_agent_texture
 from utils.preload import light_wizard_left_animation, light_wizard_right_animation, light_wizard_standing_animation, light_wizard_up_animation
 from utils.preload import dark_wizard_left_animation, dark_wizard_right_animation, dark_wizard_standing_animation, dark_wizard_up_animation
 
 from game.inventory import Inventory
 
-class Bullet(arcade.SpriteCircle):
-    def __init__(self, radius, x, y, direction, color):
-        super().__init__(radius=radius, color=color)
-        self.center_x = x
-        self.center_y = y
+class Bullet(arcade.Sprite):
+    def __init__(self, radius, texture, x, y, direction):
+        super().__init__(texture, center_x=x, center_y=y)
         self.radius = radius
         self.direction = direction
 
@@ -79,10 +78,9 @@ class Game(arcade.gui.UIView):
         self.last_shoot = time.perf_counter()
 
         self.evaded_tax = 0
+        self.high_score = self.data["high_score"]
         self.mana = 0
         self.tax_evasion_level = TAX_EVASION_NAMES[0]
-
-        self.high_score = self.data["high_score"]
 
         self.bullets: list[Bullet] = []
         self.highscore_evaded_tax = self.data["high_score"]
@@ -108,25 +106,9 @@ class Game(arcade.gui.UIView):
         self.inventory.pay_tax_button.on_click = lambda event: self.pay_tax()
 
     def spawn_bullet(self, direction):
-        bullet = Bullet(INVENTORY_ITEMS[self.inventory.current_inventory_item][3], self.player.center_x, self.player.center_y, direction, arcade.color.BLUE)
+        bullet = Bullet(INVENTORY_ITEMS[self.inventory.current_inventory_item][3], getattr(utils.preload, INVENTORY_ITEMS[self.inventory.current_inventory_item][4]), self.player.center_x, self.player.center_y, direction)
         self.bullets.append(bullet)
         self.spritelist.append(bullet)
-
-    def auto_shoot(self):
-        closest_dist = 999999
-        closest_direction = None
-
-        for irs_agent in self.irs_agents:
-            distance = arcade.math.Vec2(self.player.center_x, self.player.center_y).distance((irs_agent.center_x, irs_agent.center_y))
-
-            if distance < closest_dist:
-                closest_dist = distance
-                closest_direction = (arcade.math.Vec2(irs_agent.center_x, irs_agent.center_y) - (self.player.center_x, self.player.center_y)).normalize()
-
-        if not closest_dist or not closest_direction:
-            return
-        
-        self.spawn_bullet(closest_direction)
 
     def get_current_level_int(self):
         return TAX_EVASION_NAMES.index(self.tax_evasion_level)
@@ -275,9 +257,6 @@ class Game(arcade.gui.UIView):
         if self.evaded_tax > self.high_score:
             self.high_score = self.evaded_tax
             self.high_score_label.text = f"High Score: {int(self.high_score)}$"
-
-    def on_show_view(self):
-        super().on_show_view()
 
     def on_key_press(self, symbol, modifiers):
         if symbol == arcade.key.ESCAPE:

@@ -28,10 +28,9 @@ SHOP_ITEMS = []
 PLAYER_SPEED = 4
 
 INVENTORY_ITEMS = [
-    ["Fireball", 0.2, 10, 10],
-    ["Lightning Bolt", 0.4, 20, 20],
-    ["Ice Blast", 0.1, 5, 7.5],
-    ["Arcane Beam", 0.2, 20, 15],
+    ["Fireball", 0.2, 10, 10, "fireball_texture"],
+    ["Lightning Bolt", 0.4, 20, 20, "lightning_bolt_texture"],
+    ["Ice Blast", 0.1, 5, 7.5, "ice_blast_texture"],
 ]
 
 INVENTORY_TRIGGER_KEYS = [getattr(arcade.key, f"KEY_{n+1}") for n in range(len(INVENTORY_ITEMS))]

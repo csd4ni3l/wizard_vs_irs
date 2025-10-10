@@ -15,4 +15,8 @@ dark_wizard_right_animation = arcade.TextureAnimation([arcade.TextureKeyframe(te
 dark_wizard_standing_animation = arcade.TextureAnimation([arcade.TextureKeyframe(texture, 300) for texture in dark_wizard_spritesheet[6:8]])
 dark_wizard_left_animation = arcade.TextureAnimation([arcade.TextureKeyframe(texture, 300) for texture in dark_wizard_spritesheet[9:11]])
 
+fireball_texture = arcade.make_circle_texture(10, arcade.color.RED)
+lightning_bolt_texture = arcade.make_circle_texture(20, arcade.color.BLUE)
+ice_blast_texture = arcade.make_circle_texture(20, arcade.color.ICEBERG)
+
 irs_agent_texture = arcade.load_texture("assets/graphics/irs_agent.png")
