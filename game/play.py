@@ -147,10 +147,13 @@ class Game(arcade.gui.UIView):
             self.tax_evasion_level_notice.visible = True
             self.last_tax_evasion_notice = time.perf_counter()
 
-        if not self.get_current_level_int() == len(TAX_EVASION_NAMES) - 1:
-            self.progress_bar.value = ((self.evaded_tax - TAX_EVASION_LEVELS[self.tax_evasion_level]) / (TAX_EVASION_LEVELS[TAX_EVASION_NAMES[self.get_current_level_int() + 1]] - TAX_EVASION_LEVELS[self.tax_evasion_level])) * 100
+        if not self.evaded_tax < 0:
+            if not self.get_current_level_int() == len(TAX_EVASION_NAMES) - 1:
+                self.progress_bar.value = ((self.evaded_tax - TAX_EVASION_LEVELS[self.tax_evasion_level]) / (TAX_EVASION_LEVELS[TAX_EVASION_NAMES[self.get_current_level_int() + 1]] - TAX_EVASION_LEVELS[self.tax_evasion_level])) * 100
+            else:
+                self.progress_bar.value = 100
         else:
-            self.progress_bar.value = 100
+            self.progress_bar.value = 0
 
         self.tax_evasion_label.text = f"Tax Evasion Level: {self.tax_evasion_level}"
 
