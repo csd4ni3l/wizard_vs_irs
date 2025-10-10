@@ -4,16 +4,16 @@ from utils.constants import button_style
 
 class Inventory(arcade.gui.UIBoxLayout):
     def __init__(self, items, window_width):
-        super().__init__(size_hint=(0.75, 0.1), vertical=False, space_between=5)
+        super().__init__(size_hint=(0.5, 0.1), vertical=False, space_between=5)
         self.items = items
         self.current_inventory_item = 0
 
         self.inventory_buttons: list[arcade.gui.UITextureButton] = []
 
         for n, item in enumerate(items):
-            self.inventory_buttons.append(self.add(arcade.gui.UIFlatButton(text=f"{item[0]} ({n + 1})", style=button_style, width=(window_width * 0.75) / len(items) + 1)))
+            self.inventory_buttons.append(self.add(arcade.gui.UIFlatButton(text=f"{item[0]} ({n + 1})", style=button_style, width=(window_width * 0.5) / len(items) + 1)))
 
-        self.pay_tax_button = self.add(arcade.gui.UIFlatButton(text="Pay Tax (1000$)", style=button_style, width=(window_width * 0.75) / len(items) + 1))
+        self.pay_tax_button = self.add(arcade.gui.UIFlatButton(text="Pay Tax (1000$)", style=button_style, width=(window_width * 0.5) / len(items) + 1))
         self.pay_tax_button.style["normal"]["bg"] = arcade.color.GRAY
         self.pay_tax_button.style["normal"]["bg"] = arcade.color.GRAY
 

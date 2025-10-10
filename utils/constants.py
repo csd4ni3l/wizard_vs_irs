@@ -1,4 +1,4 @@
-import arcade.color
+import arcade.color, arcade.key
 from arcade.types import Color
 from arcade.gui.widgets.buttons import UITextureButtonStyle, UIFlatButtonStyle
 from arcade.gui.widgets.slider import UISliderStyle
@@ -8,25 +8,33 @@ log_dir = 'logs'
 discord_presence_id = 1424784736726945915
 
 IRS_AGENT_SPAWN_INTERVAL = 1
-IRS_AGENT_SPEED = 1
-TAX_PER_IRS_AGENT = 200
+IRS_AGENT_ATTACK_SPEED = 1
+IRS_AGENT_SPEED = 1.5
+IRS_AGENT_HEALTH = 15
+TAX_PER_IRS_AGENT = 100
 
-TAX_EVASION_LEVELS = {"Compliant Citizen": 0, "Suspicious": 1, "Under Review": 1500, "Flagged": 3500, "Audited": 10000, "Criminal Case": 20000, "Most Wanted": 50000, "Legendary": 100000}
+TAX_EVASION_LEVELS = {"Compliant Citizen": 0, "Suspicious": 1, "Under Review": 2500, "Flagged": 5000, "Audited": 10000, "Criminal Case": 20000, "Most Wanted": 50000, "Legendary": 100000}
 TAX_EVASION_NAMES = list(TAX_EVASION_LEVELS.keys())
 
-BULLET_SPEED = 5
-SPEED_INCREASE_PER_LEVEL = 0.5
-SPAWN_INTERVAL_DECREASE_PER_LEVEL = 0.1
-TAX_INCREASE_PER_LEVEL = 50
+BULLET_SPEED = 10
+SPEED_INCREASE_PER_LEVEL = 0.3
+SPAWN_INTERVAL_DECREASE_PER_LEVEL = 0.075
+HEALTH_INCREASE_PER_LEVEL = 2
+TAX_INCREASE_PER_LEVEL = 100
+ATTACK_INTERVAL_DECREASE_PER_LEVEL = .1
 
 SHOP_ITEMS = []
 
+PLAYER_SPEED = 4
+
 INVENTORY_ITEMS = [
-    ["Fireball"],
-    ["Lightning Bolt"],
-    ["Ice Blast"],
-    ["Arcane Beam"],
+    ["Fireball", 0.2, 10, 10],
+    ["Lightning Bolt", 0.4, 20, 20],
+    ["Ice Blast", 0.1, 5, 7.5],
+    ["Arcane Beam", 0.2, 20, 15],
 ]
+
+INVENTORY_TRIGGER_KEYS = [getattr(arcade.key, f"KEY_{n+1}") for n in range(len(INVENTORY_ITEMS))]
 
 button_style = {'normal': UITextureButtonStyle(font_name="Roboto", font_color=arcade.color.BLACK), 'hover': UITextureButtonStyle(font_name="Roboto", font_color=arcade.color.BLACK),
                 'press': UITextureButtonStyle(font_name="Roboto", font_color=arcade.color.BLACK), 'disabled': UITextureButtonStyle(font_name="Roboto", font_color=arcade.color.BLACK)}
