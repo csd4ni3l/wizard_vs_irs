@@ -82,6 +82,8 @@ class Game(arcade.gui.UIView):
         self.mana = 0
         self.tax_evasion_level = TAX_EVASION_NAMES[0]
 
+        self.high_score = self.data["high_score"]
+
         self.bullets: list[Bullet] = []
         self.highscore_evaded_tax = self.data["high_score"]
         self.player = Player(self.window.width / 2, self.window.height / 2)
@@ -89,6 +91,7 @@ class Game(arcade.gui.UIView):
 
         self.info_box = self.anchor.add(arcade.gui.UIBoxLayout(space_between=0, align="left"), anchor_x="left", anchor_y="top")
         self.evaded_tax_label = self.info_box.add(arcade.gui.UILabel(text="Evaded Tax: 0$", font_size=14, text_color=arcade.color.BLACK))
+        self.high_score_label = self.info_box.add(arcade.gui.UILabel(text=f"High Score: {self.high_score}$", font_size=14, text_color=arcade.color.BLACK))
         self.mana_label = self.info_box.add(arcade.gui.UILabel(text="Mana: 0", font_size=14, text_color=arcade.color.BLACK))
         self.tax_evasion_label = self.info_box.add(arcade.gui.UILabel(text=f"Tax Evasion Level: {self.tax_evasion_level}", font_size=14, text_color=arcade.color.BLACK))
         
@@ -265,15 +268,23 @@ class Game(arcade.gui.UIView):
             self.spawn_irs_agent()
 
         if self.evaded_tax >= 0:
-            self.evaded_tax_label.text = f"Evaded Tax: {self.evaded_tax}$"
+            self.evaded_tax_label.text = f"Evaded Tax: {int(self.evaded_tax)}$"
         else:
-            self.evaded_tax_label.text = f"Tax Debt: {abs(self.evaded_tax)}$"
+            self.evaded_tax_label.text = f"Tax Debt: {int(abs(self.evaded_tax))}$"
+
+        if self.evaded_tax > self.high_score:
+            self.high_score = self.evaded_tax
+            self.high_score_label.text = f"High Score: {int(self.high_score)}$"
 
     def on_show_view(self):
         super().on_show_view()
 
     def on_key_press(self, symbol, modifiers):
         if symbol == arcade.key.ESCAPE:
+            self.data["high_score"] = int(self.high_score)
+            with open("data.json", "w") as file:
+                file.write(json.dumps(self.data, indent=4))
+
             arcade.set_background_color(menu_background_color)
 
             from menus.main import Main
