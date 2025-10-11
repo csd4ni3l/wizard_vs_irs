@@ -13,25 +13,59 @@ IRS_AGENT_SPEED = 1.5
 IRS_AGENT_HEALTH = 15
 TAX_PER_IRS_AGENT = 100
 
-TAX_EVASION_LEVELS = {"Compliant Citizen": 0, "Suspicious": 1, "Under Review": 2500, "Flagged": 5000, "Audited": 10000, "Criminal Case": 20000, "Most Wanted": 50000, "Legendary": 100000}
-TAX_EVASION_NAMES = list(TAX_EVASION_LEVELS.keys())
-
-BULLET_SPEED = 10
 SPEED_INCREASE_PER_LEVEL = 0.3
 SPAWN_INTERVAL_DECREASE_PER_LEVEL = 0.075
 HEALTH_INCREASE_PER_LEVEL = 2
-TAX_INCREASE_PER_LEVEL = 100
+TAX_INCREASE_PER_LEVEL = 50
 ATTACK_INTERVAL_DECREASE_PER_LEVEL = .1
 
-SHOP_ITEMS = []
+TAX_EVASION_LEVELS = {
+    "Compliant Citizen": 0,
+    "Minor Mistake": 300,            
+    "Mildly Suspicious": 1250,
+    "Suspicious": 3000,
+    "Under Review": 5000,
+    "Investigated": 10000,
+    "Flagged": 15000,
+    "Audited": 30000,
+    "Seized Assets": 50000,
+    "Criminal Case": 125000,
+    "International Watchlist": 250000,
+    "Most Wanted": 500000,
+    "Legendary": 1000000,
+    "Mythic": 5000000
+}
+TAX_EVASION_NAMES = list(TAX_EVASION_LEVELS.keys())
 
+BULLET_SPEED = 8
+PLAYER_INACCURACY_MAX = 10
 PLAYER_SPEED = 4
 
-INVENTORY_ITEMS = [
-    ["Fireball", 0.2, 10, 10, "fireball_texture"],
-    ["Lightning Bolt", 0.4, 20, 20, "lightning_bolt_texture"],
-    ["Ice Blast", 0.1, 5, 7.5, "ice_blast_texture"],
+# name, json_key, max_count, upgrade_cost
+SHOP_ITEMS = [
+    ["Fireball DMG", "fb_dmg", 999, 10000],
+    ["Fireball ATK Speed", "fb_atk_speed", 10, 30000],
+    ["Lightning Bolt DMG", "lb_dmg", 999, 10000],
+    ["Lightning Bolt ATK Speed", "lb_atk_speed", 10, 30000],
+    ["Ice Blast DMG", "ib_dmg", 999, 10000],
+    ["Ice Blast ATK Speed", "ib_atk_speed", 10, 30000],
+    ["Inaccuracy Decrease", "inaccuracy_decrease", 10, 25000],
+    ["Player Speed", "player_speed", 999, 20000],
+    ["Bullet Speed", "bullet_speed", 999, 20000],
+    ["Dark Mode Wizard", "dark_mode_wizard", 1, 1000000]
 ]
+
+INVENTORY_ITEMS = [
+    ["Fireball", 0.25, 10, 10, "fireball_texture"],
+    ["Lightning Bolt", 0.45, 20, 20, "lightning_bolt_texture"],
+    ["Ice Blast", 0.15, 5, 7.5, "ice_blast_texture"],
+]
+
+item_to_json_name = {
+    "Fireball": "fb",
+    "Lightning Bolt": "lb",
+    "Ice Blast": "ib"
+}
 
 INVENTORY_TRIGGER_KEYS = [getattr(arcade.key, f"KEY_{n+1}") for n in range(len(INVENTORY_ITEMS))]
 

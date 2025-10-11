@@ -1,8 +1,8 @@
-import arcade, arcade.gui, random, math, time, json, os
+import arcade, arcade.gui, random, math, time, json, math
 
 from utils.constants import BULLET_SPEED, IRS_AGENT_HEALTH, HEALTH_INCREASE_PER_LEVEL, PLAYER_SPEED, IRS_AGENT_SPEED, TAX_PER_IRS_AGENT, IRS_AGENT_ATTACK_SPEED
-from utils.constants import IRS_AGENT_SPAWN_INTERVAL, SPAWN_INTERVAL_DECREASE_PER_LEVEL, SPEED_INCREASE_PER_LEVEL
-from utils.constants import TAX_EVASION_LEVELS, TAX_EVASION_NAMES, TAX_INCREASE_PER_LEVEL, menu_background_color, INVENTORY_ITEMS, INVENTORY_TRIGGER_KEYS
+from utils.constants import IRS_AGENT_SPAWN_INTERVAL, SPAWN_INTERVAL_DECREASE_PER_LEVEL, SPEED_INCREASE_PER_LEVEL, item_to_json_name
+from utils.constants import TAX_EVASION_LEVELS, TAX_EVASION_NAMES, TAX_INCREASE_PER_LEVEL, menu_background_color, INVENTORY_ITEMS, INVENTORY_TRIGGER_KEYS, PLAYER_INACCURACY_MAX
 
 import utils.preload
 from utils.preload import irs_agent_texture
@@ -16,9 +16,10 @@ class Bullet(arcade.Sprite):
         super().__init__(texture, center_x=x, center_y=y)
         self.radius = radius
         self.direction = direction
+        self.speed = 0
 
     def move(self):
-        self.position += self.direction * BULLET_SPEED
+        self.position += self.direction * self.speed
 
 class IRSAgent(arcade.Sprite):
     def __init__(self, x, y):
@@ -39,8 +40,10 @@ class IRSAgent(arcade.Sprite):
             self.color = (255, 255, 255, 255)
 
 class Player(arcade.TextureAnimationSprite):
-    def __init__(self, x, y): # x, y here because we dont know window width and height
-        super().__init__(animation=dark_wizard_standing_animation, center_x=x, center_y=y, scale=1.5)
+    def __init__(self, x, y, dark_mode_unlocked=False): # x, y here because we dont know window width and height
+        super().__init__(animation=dark_wizard_standing_animation if dark_mode_unlocked else light_wizard_standing_animation, center_x=x, center_y=y, scale=1.5)
+
+        self.direction = arcade.math.Vec2()
 
 class Game(arcade.gui.UIView):
     def __init__(self, pypresence_client):
@@ -51,13 +54,8 @@ class Game(arcade.gui.UIView):
         self.pypresence_client = pypresence_client
         self.pypresence_client.update(state="Playing the game")
 
-        if os.path.exists("data.json"):
-            with open("data.json", "r") as file:
-                self.data = json.load(file)
-        else:
-            self.data = {
-                "high_score": 0
-            }
+        with open("data.json", "r") as file: # no need for if, since Main already creates the file with default values.
+            self.data = json.load(file)
 
         self.camera = arcade.Camera2D()
 
@@ -83,8 +81,7 @@ class Game(arcade.gui.UIView):
         self.tax_evasion_level = TAX_EVASION_NAMES[0]
 
         self.bullets: list[Bullet] = []
-        self.highscore_evaded_tax = self.data["high_score"]
-        self.player = Player(self.window.width / 2, self.window.height / 2)
+        self.player = Player(self.window.width / 2, self.window.height / 2, self.data["shop"]["dark_mode_wizard"])
         self.spritelist.append(self.player)
 
         self.info_box = self.anchor.add(arcade.gui.UIBoxLayout(space_between=0, align="left"), anchor_x="left", anchor_y="top")
@@ -102,11 +99,15 @@ class Game(arcade.gui.UIView):
         self.progress_bar._render_thumb = lambda surface: None
         self.progress_bar.on_event = lambda event: None
 
-        self.inventory = self.anchor.add(Inventory(INVENTORY_ITEMS, self.window.width), anchor_x="center", anchor_y="bottom")
+        self.inventory = self.anchor.add(Inventory(INVENTORY_ITEMS, self.window.width), anchor_x="left", anchor_y="bottom", align_x=self.window.width / 20)
         self.inventory.pay_tax_button.on_click = lambda event: self.pay_tax()
+
+    def dash(self):
+        self.player.position += self.player.direction * (PLAYER_SPEED * 15 * self.data.get('shop', {}).get('player_speed', 0))
 
     def spawn_bullet(self, direction):
         bullet = Bullet(INVENTORY_ITEMS[self.inventory.current_inventory_item][3], getattr(utils.preload, INVENTORY_ITEMS[self.inventory.current_inventory_item][4]), self.player.center_x, self.player.center_y, direction)
+        bullet.speed = BULLET_SPEED + self.data.get('shop', {}).get("bullet_speed", 0)
         self.bullets.append(bullet)
         self.spritelist.append(bullet)
 
@@ -167,27 +168,57 @@ class Game(arcade.gui.UIView):
         self.player.update_animation()
 
         if self.window.keyboard[arcade.key.W]:
-            self.player.center_y += PLAYER_SPEED
-            if not self.player.animation == dark_wizard_up_animation: # this is needed because the animation property will reset to the first frame, so animation doesnt work.
-                self.player.animation = dark_wizard_up_animation
+            self.player.direction = arcade.math.Vec2(self.player.direction.x, 1)
+            if not self.player.animation == (dark_wizard_up_animation if self.data["shop"]["dark_mode_wizard"] else light_wizard_up_animation): # this is needed because the animation property will reset to the first frame, so animation doesnt work.
+                self.player.animation = (dark_wizard_up_animation if self.data["shop"]["dark_mode_wizard"] else light_wizard_up_animation)
         elif self.window.keyboard[arcade.key.S]:
-            self.player.center_y -= PLAYER_SPEED
-            if not self.player.animation == dark_wizard_standing_animation: # this is needed because the animation property will reset to the first frame, so animation doesnt work.
-                self.player.animation = dark_wizard_standing_animation
+            self.player.direction = arcade.math.Vec2(self.player.direction.x, -1)
+            if not self.player.animation == (dark_wizard_standing_animation if self.data["shop"]["dark_mode_wizard"] else light_wizard_standing_animation): # this is needed because the animation property will reset to the first frame, so animation doesnt work.
+                self.player.animation = (dark_wizard_standing_animation if self.data["shop"]["dark_mode_wizard"] else light_wizard_standing_animation)
+        else:
+            self.player.direction = arcade.math.Vec2(self.player.direction.x, 0)
+
         if self.window.keyboard[arcade.key.D]:
-            self.player.center_x += PLAYER_SPEED
-            if not self.player.animation == dark_wizard_right_animation: # this is needed because the animation property will reset to the first frame, so animation doesnt work.
-                self.player.animation = dark_wizard_right_animation
+            self.player.direction = arcade.math.Vec2(1, self.player.direction.y)
+            if not self.player.animation == (dark_wizard_right_animation if self.data["shop"]["dark_mode_wizard"] else light_wizard_right_animation): # this is needed because the animation property will reset to the first frame, so animation doesnt work.
+                self.player.animation = (dark_wizard_right_animation if self.data["shop"]["dark_mode_wizard"] else light_wizard_right_animation)
         elif self.window.keyboard[arcade.key.A]:
-            self.player.center_x -= PLAYER_SPEED
-            if not self.player.animation == dark_wizard_left_animation: # this is needed because the animation property will reset to the first frame, so animation doesnt work.
-                self.player.animation = dark_wizard_left_animation
+            self.player.direction = arcade.math.Vec2(-1, self.player.direction.y)
+            if not self.player.animation == (dark_wizard_left_animation if self.data["shop"]["dark_mode_wizard"] else light_wizard_left_animation): # this is needed because the animation property will reset to the first frame, so animation doesnt work.
+                self.player.animation = (dark_wizard_left_animation if self.data["shop"]["dark_mode_wizard"] else light_wizard_left_animation)
+        else:
+            self.player.direction = arcade.math.Vec2(0, self.player.direction.y)
 
-        if time.perf_counter() - self.last_shoot >= INVENTORY_ITEMS[self.inventory.current_inventory_item][1]:
+        self.player.position += self.player.direction * (PLAYER_SPEED + self.data.get('shop', {}).get('player_speed', 0))
+
+        if self.player.center_x + self.player.width / 2 > self.window.width:
+            self.player.center_x = self.window.width - self.player.width / 2
+        elif self.player.center_x - self.player.width / 2 < 0:
+            self.player.center_x = self.player.width / 2
+
+        if self.player.center_y + self.player.height / 2 > self.window.height:
+            self.player.center_y = self.window.height - self.player.height / 2
+        elif self.player.center_y - self.player.height / 2 < 0:
+            self.player.center_y = self.player.height / 2
+
+        item_list = INVENTORY_ITEMS[self.inventory.current_inventory_item]
+
+        json_name = item_to_json_name[item_list[0]]
+
+        if time.perf_counter() - self.last_shoot >= item_list[1] - ((item_list[1] / 15) * self.data["shop"][f"{json_name}_atk_speed"]):
             self.last_shoot = time.perf_counter()
-            direction = ((self.window.mouse.data.get("x", 0), self.window.mouse.data.get("y", 0)) - arcade.math.Vec2(self.player.center_x, self.player.center_y)).normalize()
+            
+            mouse_pos = arcade.math.Vec2(
+                self.window.mouse.data.get("x", 0),
+                self.window.mouse.data.get("y", 0)
+            )
 
-            self.spawn_bullet(direction)
+            player_pos = arcade.math.Vec2(self.player.center_x, self.player.center_y)
+
+            direction = (mouse_pos - player_pos).normalize()
+
+            inaccuracy = random.randint(-(PLAYER_INACCURACY_MAX - self.data["shop"]["inaccuracy_decrease"]), (PLAYER_INACCURACY_MAX - self.data["shop"]["inaccuracy_decrease"]))
+            self.spawn_bullet(direction.rotate(math.radians(inaccuracy)))
 
         if self.tax_evasion_level_notice.visible and time.perf_counter() - self.last_tax_evasion_notice >= 2.5:
             self.tax_evasion_level_notice.visible = False
@@ -228,8 +259,11 @@ class Game(arcade.gui.UIView):
                 if arcade.math.Vec2(bullet.center_x, bullet.center_y).distance((irs_agent.center_x, irs_agent.center_y)) <= (irs_agent.width / 2 + bullet.radius):
                     irs_agent.damaged = True
                     irs_agent.last_damage = time.perf_counter()
-                    irs_agent.position += bullet.direction * INVENTORY_ITEMS[self.inventory.current_inventory_item][2] * 1.5
-                    irs_agent.health -= INVENTORY_ITEMS[self.inventory.current_inventory_item][2]
+                    
+                    damage = item_list[2] + (item_list[2] / 10 * self.data["shop"][f"{json_name}_dmg"])
+
+                    irs_agent.position += bullet.direction * damage * 1.5
+                    irs_agent.health -= damage
 
                     if irs_agent.health <= 0:
                         self.spritelist.remove(irs_agent)
@@ -261,6 +295,7 @@ class Game(arcade.gui.UIView):
     def on_key_press(self, symbol, modifiers):
         if symbol == arcade.key.ESCAPE:
             self.data["high_score"] = int(self.high_score)
+            self.data["evaded_tax"] += int(self.evaded_tax)
             with open("data.json", "w") as file:
                 file.write(json.dumps(self.data, indent=4))
 
@@ -272,6 +307,8 @@ class Game(arcade.gui.UIView):
             self.inventory.select_item(int(chr(symbol)) - 1)
         elif symbol == arcade.key.P:
             self.pay_tax()
+        elif symbol == arcade.key.TAB:
+            self.dash()
 
     def on_resize(self, width: int, height: int):
         super().on_resize(width, height)

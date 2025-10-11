@@ -1,4 +1,5 @@
-import arcade, arcade.gui, asyncio, pypresence, time, copy, json
+import arcade, arcade.gui, asyncio, pypresence, time, copy, json, os
+
 from utils.preload import button_texture, button_hovered_texture
 from utils.constants import big_button_style, discord_presence_id
 from utils.utils import FakePyPresence
@@ -47,20 +48,44 @@ class Main(arcade.gui.UIView):
 
         self.pypresence_client.update(state='In Menu', details='In Main Menu', start=self.pypresence_client.start_time)
 
+        if os.path.exists("data.json"):
+            with open("data.json", "r") as file:
+                self.data = json.load(file)
+        else:
+            self.data = {}
+        
+        if not "high_score" in self.data:
+            self.data["high_score"] = 0
+
+        if not "evaded_tax" in self.data:
+            self.data["evaded_tax"] = 0
+
+        with open("data.json", "w") as file:
+            file.write(json.dumps(self.data, indent=4))
+
     def on_show_view(self):
         super().on_show_view()
 
         self.title_label = self.box.add(arcade.gui.UILabel(text="Wizard vs IRS", font_name="Roboto", font_size=48))
+        self.high_score_label = self.box.add(arcade.gui.UILabel(text=f"High Score: {self.data['high_score']}$", font_name="Roboto", font_size=24))
+        self.evaded_tax_label = self.box.add(arcade.gui.UILabel(text=f"Total Evaded Tax: {self.data['evaded_tax']}$", font_name="Roboto", font_size=24))
 
-        self.play_button = self.box.add(arcade.gui.UITextureButton(text="Play", texture=button_texture, texture_hovered=button_hovered_texture, width=self.window.width / 2, height=150, style=big_button_style))
+        self.play_button = self.box.add(arcade.gui.UITextureButton(text="Play", texture=button_texture, texture_hovered=button_hovered_texture, width=self.window.width / 2, height=self.window.height / 10, style=big_button_style))
         self.play_button.on_click = lambda event: self.play()
 
-        self.settings_button = self.box.add(arcade.gui.UITextureButton(text="Settings", texture=button_texture, texture_hovered=button_hovered_texture, width=self.window.width / 2, height=150, style=big_button_style))
+        self.shop_button = self.box.add(arcade.gui.UITextureButton(text="Shop", texture=button_texture, texture_hovered=button_hovered_texture, width=self.window.width / 2, height=self.window.height / 10, style=big_button_style))
+        self.shop_button.on_click = lambda event: self.shop()
+
+        self.settings_button = self.box.add(arcade.gui.UITextureButton(text="Settings", texture=button_texture, texture_hovered=button_hovered_texture, width=self.window.width / 2, height=self.window.height / 10, style=big_button_style))
         self.settings_button.on_click = lambda event: self.settings()
 
     def play(self):
         from game.play import Game
         self.window.show_view(Game(self.pypresence_client))
+
+    def shop(self):
+        from menus.shop import Shop
+        self.window.show_view(Shop(self.pypresence_client))
 
     def settings(self):
         from menus.settings import Settings
