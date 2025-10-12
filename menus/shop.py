@@ -55,7 +55,7 @@ class Shop(arcade.gui.UIView):
             level_string = self.data["shop"][shop_item[1]] if self.data["shop"][shop_item[1]] < max_count else "Max"
 
             button = self.grid.add(arcade.gui.UITextureButton(
-                text=f'{shop_item[0]}{notice_string}\nLevel: {level_string}\nUpgrade Cost: {upgrade_cost}$\n{shop_item[2] - self.data["shop"][shop_item[1]]}',
+                text=f'{shop_item[0]}{notice_string}\nLevel: {level_string}\nUpgrade Cost: {upgrade_cost}$',
                 texture=button_texture,
                 texture_hovered=button_hovered_texture,
                 style=button_style,

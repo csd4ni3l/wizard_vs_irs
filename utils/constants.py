@@ -7,33 +7,33 @@ menu_background_color = (30, 30, 47)
 log_dir = 'logs'
 discord_presence_id = 1424784736726945915
 
-IRS_AGENT_SPAWN_INTERVAL = 1
+IRS_AGENT_SPAWN_INTERVAL = 0.8
 IRS_AGENT_ATTACK_SPEED = 1
 IRS_AGENT_SPEED = 1.5
 IRS_AGENT_HEALTH = 15
-TAX_PER_IRS_AGENT = 100
+TAX_PER_IRS_AGENT = 300
 
 SPEED_INCREASE_PER_LEVEL = 0.3
-SPAWN_INTERVAL_DECREASE_PER_LEVEL = 0.075
+SPAWN_INTERVAL_DECREASE_PER_LEVEL = 0.05
 HEALTH_INCREASE_PER_LEVEL = 2
-TAX_INCREASE_PER_LEVEL = 50
+TAX_INCREASE_PER_LEVEL = 100
 ATTACK_INTERVAL_DECREASE_PER_LEVEL = .1
 
 TAX_EVASION_LEVELS = {
     "Compliant Citizen": 0,
-    "Minor Mistake": 300,            
-    "Mildly Suspicious": 1250,
-    "Suspicious": 3000,
-    "Under Review": 5000,
+    "Minor Mistake": 1000,            
+    "Mildly Suspicious": 2500,
+    "Suspicious": 5000,
+    "Under Review": 7500,
     "Investigated": 10000,
-    "Flagged": 15000,
-    "Audited": 30000,
-    "Seized Assets": 50000,
-    "Criminal Case": 125000,
-    "International Watchlist": 250000,
-    "Most Wanted": 500000,
-    "Legendary": 1000000,
-    "Mythic": 5000000
+    "Flagged": 13500,
+    "Audited": 25000,
+    "Seized Assets": 40000,
+    "Criminal Case": 70000,
+    "International Watchlist": 125000,
+    "Most Wanted": 250000,
+    "Legendary": 500000,
+    "Mythic": 1000000
 }
 TAX_EVASION_NAMES = list(TAX_EVASION_LEVELS.keys())
 
@@ -50,7 +50,7 @@ SHOP_ITEMS = [
     ["Ice Blast DMG", "ib_dmg", 999, 10000],
     ["Ice Blast ATK Speed", "ib_atk_speed", 10, 30000],
     ["Inaccuracy Decrease", "inaccuracy_decrease", 10, 25000],
-    ["Player Speed", "player_speed", 999, 20000],
+    ["Player Speed", "player_speed", 15, 20000],
     ["Bullet Speed", "bullet_speed", 999, 20000],
     ["Dark Mode Wizard", "dark_mode_wizard", 1, 1000000]
 ]

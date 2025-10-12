@@ -268,13 +268,13 @@ class Game(arcade.gui.UIView):
                     if irs_agent.health <= 0:
                         self.spritelist.remove(irs_agent)
                         self.irs_agents.remove(irs_agent)
-                        self.evaded_tax += (TAX_PER_IRS_AGENT / 2) + ((TAX_INCREASE_PER_LEVEL / 2) * self.get_current_level_int())
+                        self.evaded_tax += (TAX_PER_IRS_AGENT / 4) + ((TAX_INCREASE_PER_LEVEL / 4) * self.get_current_level_int())
                         self.update_evasion_level()
 
                     self.camera_shake.start()
                     hit = True
 
-            if hit:
+            if hit or bullet.center_x + bullet.radius / 2 > self.window.width or bullet.center_x - bullet.radius / 2 < 0 or bullet.center_y + bullet.radius / 2 > self.window.height or bullet.center_y - bullet.height / 2 < 0:
                 self.spritelist.remove(bullet)
                 self.bullets.remove(bullet)
 
