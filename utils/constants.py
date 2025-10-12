@@ -8,16 +8,18 @@ log_dir = 'logs'
 discord_presence_id = 1424784736726945915
 
 IRS_AGENT_SPAWN_INTERVAL = 0.8
-IRS_AGENT_ATTACK_SPEED = 1
-IRS_AGENT_SPEED = 1.5
-IRS_AGENT_HEALTH = 15
-TAX_PER_IRS_AGENT = 300
 
-SPEED_INCREASE_PER_LEVEL = 0.3
-SPAWN_INTERVAL_DECREASE_PER_LEVEL = 0.05
-HEALTH_INCREASE_PER_LEVEL = 2
-TAX_INCREASE_PER_LEVEL = 100
-ATTACK_INTERVAL_DECREASE_PER_LEVEL = .1
+IRS_AGENT_TYPES = [
+    (1, 2.25, 15, 200), # Normal
+    (0.9, 3.5, 8, 150), # Speedrunner
+    (1.3, 1.5, 35, 350) # Auditor
+]
+
+SPEED_INCREASE_PER_LEVEL = 1 / 5
+SPAWN_INTERVAL_DECREASE_PER_LEVEL = 1 / 20
+HEALTH_INCREASE_PER_LEVEL = 1 / 7.5
+TAX_INCREASE_PER_LEVEL = 1 / 3
+ATTACK_INTERVAL_DECREASE_PER_LEVEL = 1 / 10
 
 TAX_EVASION_LEVELS = {
     "Compliant Citizen": 0,
@@ -45,8 +47,8 @@ PLAYER_SPEED = 4
 SHOP_ITEMS = [
     ["Fireball DMG", "fb_dmg", 999, 10000],
     ["Fireball ATK Speed", "fb_atk_speed", 10, 30000],
-    ["Lightning Bolt DMG", "lb_dmg", 999, 10000],
-    ["Lightning Bolt ATK Speed", "lb_atk_speed", 10, 30000],
+    ["Ball of Lightning DMG", "lb_dmg", 999, 10000],
+    ["Ball of Lightning ATK Speed", "lb_atk_speed", 10, 30000],
     ["Ice Blast DMG", "ib_dmg", 999, 10000],
     ["Ice Blast ATK Speed", "ib_atk_speed", 10, 30000],
     ["Inaccuracy Decrease", "inaccuracy_decrease", 10, 25000],
@@ -57,13 +59,20 @@ SHOP_ITEMS = [
 
 INVENTORY_ITEMS = [
     ["Fireball", 0.25, 10, 10, "fireball_texture"],
-    ["Lightning Bolt", 0.45, 20, 20, "lightning_bolt_texture"],
+    ["Ball of Lightning", 0.45, 20, 20, "lightning_bolt_texture"],
     ["Ice Blast", 0.15, 5, 7.5, "ice_blast_texture"],
 ]
 
+ABILITIES = {
+    "dash": [5, 20],
+    "tax_shield": [15, 50],
+    "audit_bomb": [20, 100],
+    "freeze_audit": [15, 150]
+}
+
 item_to_json_name = {
     "Fireball": "fb",
-    "Lightning Bolt": "lb",
+    "Ball of Lightning": "bl",
     "Ice Blast": "ib"
 }
 

@@ -1,6 +1,6 @@
 import arcade, arcade.gui, random, math, time, json, math
 
-from utils.constants import BULLET_SPEED, IRS_AGENT_HEALTH, HEALTH_INCREASE_PER_LEVEL, PLAYER_SPEED, IRS_AGENT_SPEED, TAX_PER_IRS_AGENT, IRS_AGENT_ATTACK_SPEED
+from utils.constants import BULLET_SPEED, HEALTH_INCREASE_PER_LEVEL, PLAYER_SPEED, IRS_AGENT_TYPES, ATTACK_INTERVAL_DECREASE_PER_LEVEL, ABILITIES
 from utils.constants import IRS_AGENT_SPAWN_INTERVAL, SPAWN_INTERVAL_DECREASE_PER_LEVEL, SPEED_INCREASE_PER_LEVEL, item_to_json_name
 from utils.constants import TAX_EVASION_LEVELS, TAX_EVASION_NAMES, TAX_INCREASE_PER_LEVEL, menu_background_color, INVENTORY_ITEMS, INVENTORY_TRIGGER_KEYS, PLAYER_INACCURACY_MAX
 
@@ -25,10 +25,11 @@ class IRSAgent(arcade.Sprite):
     def __init__(self, x, y):
         super().__init__(irs_agent_texture, center_x=x, center_y=y, scale=1.25)
 
+        self.speed, self.attack_speed, self.health, self.tax = 0, 0, 0, 0
+
         self.damaged = False
         self.last_damage = time.perf_counter()
         self.last_attack = time.perf_counter()
-        self.health = 0
 
     def update(self):
         if self.damaged:
@@ -45,11 +46,25 @@ class Player(arcade.TextureAnimationSprite):
 
         self.direction = arcade.math.Vec2()
 
+    def set_player_animation(self, animation):  # this is needed because the animation property will reset to the first frame, so animation doesnt work.
+        self.animation = animation
+
+class DamageNumberLabel(arcade.gui.UILabel):
+    def __init__(self, x, y, damage):
+        super().__init__(x=x, y=y, text=f"-{int(damage)}", text_color=arcade.color.RED)
+
+        self.original_y = y
+        self.finished = False
+
+    def update(self):
+        if self.center_y - self.original_y < 50:
+            self.rect = self.rect.move(0, 2)
+        else:
+            self.finished = True
+
 class Game(arcade.gui.UIView):
     def __init__(self, pypresence_client):
         super().__init__()
-
-        arcade.set_background_color(arcade.color.WHITE)
 
         self.pypresence_client = pypresence_client
         self.pypresence_client.update(state="Playing the game")
@@ -71,6 +86,7 @@ class Game(arcade.gui.UIView):
         self.spritelist = arcade.SpriteList()
 
         self.irs_agents: list[IRSAgent] = []
+        self.damage_numbers: list[arcade.gui.UILabel] = []
         self.last_irs_agent_spawn = time.perf_counter()
         self.last_mana = time.perf_counter()
         self.last_shoot = time.perf_counter()
@@ -80,17 +96,22 @@ class Game(arcade.gui.UIView):
         self.mana = 0
         self.tax_evasion_level = TAX_EVASION_NAMES[0]
 
+        self.tax_shield = 0
+        self.immobilize_irs = False
+        self.last_immobilization = time.perf_counter()
+        self.last_ability_timers = {}
+
         self.bullets: list[Bullet] = []
         self.player = Player(self.window.width / 2, self.window.height / 2, self.data["shop"]["dark_mode_wizard"])
         self.spritelist.append(self.player)
 
         self.info_box = self.anchor.add(arcade.gui.UIBoxLayout(space_between=0, align="left"), anchor_x="left", anchor_y="top")
-        self.evaded_tax_label = self.info_box.add(arcade.gui.UILabel(text="Evaded Tax: 0$", font_size=14, text_color=arcade.color.BLACK))
-        self.high_score_label = self.info_box.add(arcade.gui.UILabel(text=f"High Score: {self.high_score}$", font_size=14, text_color=arcade.color.BLACK))
-        self.mana_label = self.info_box.add(arcade.gui.UILabel(text="Mana: 0", font_size=14, text_color=arcade.color.BLACK))
-        self.tax_evasion_label = self.info_box.add(arcade.gui.UILabel(text=f"Tax Evasion Level: {self.tax_evasion_level}", font_size=14, text_color=arcade.color.BLACK))
+        self.evaded_tax_label = self.info_box.add(arcade.gui.UILabel(text="Evaded Tax: 0$", font_size=14))
+        self.high_score_label = self.info_box.add(arcade.gui.UILabel(text=f"High Score: {self.high_score}$", font_size=14))
+        self.mana_label = self.info_box.add(arcade.gui.UILabel(text="Mana: 0", font_size=14))
+        self.tax_evasion_label = self.info_box.add(arcade.gui.UILabel(text=f"Tax Evasion Level: {self.tax_evasion_level}", font_size=14))
         
-        self.tax_evasion_level_notice = self.anchor.add(arcade.gui.UILabel(text="Tax Evasion Level Increased to example", font_size=28, text_color=arcade.color.BLACK), anchor_x="center", anchor_y="top")
+        self.tax_evasion_level_notice = self.anchor.add(arcade.gui.UILabel(text="Tax Evasion Level Increased to example", font_size=28), anchor_x="center", anchor_y="top")
         self.tax_evasion_level_notice.visible = False
         self.last_tax_evasion_notice = time.perf_counter()
 
@@ -99,11 +120,56 @@ class Game(arcade.gui.UIView):
         self.progress_bar._render_thumb = lambda surface: None
         self.progress_bar.on_event = lambda event: None
 
+        self.ability_info_label = self.anchor.add(arcade.gui.UILabel(text=f"""Abilities:
+Dash (tab): {ABILITIES['dash'][1]} Mana
+Tax Shield (t): {ABILITIES["tax_shield"][1]} Mana
+Audit Bomb (b): {ABILITIES["audit_bomb"][1]} Mana
+Freeze Audit (f): {ABILITIES["freeze_audit"][1]} Mana""", font_size=20, multiline=True), 
+anchor_x="right", anchor_y="bottom", align_x=-5)
+
         self.inventory = self.anchor.add(Inventory(INVENTORY_ITEMS, self.window.width), anchor_x="left", anchor_y="bottom", align_x=self.window.width / 20)
         self.inventory.pay_tax_button.on_click = lambda event: self.pay_tax()
 
-    def dash(self):
-        self.player.position += self.player.direction * (PLAYER_SPEED * 15 * self.data.get('shop', {}).get('player_speed', 0))
+    def damage_irs_agent(self, irs_agent):
+        irs_agent.damaged = True
+        irs_agent.last_damage = time.perf_counter()
+        
+        item_list = INVENTORY_ITEMS[self.inventory.current_inventory_item]
+
+        json_name = item_to_json_name[item_list[0]]
+
+        damage = item_list[2] + (item_list[2] / 10 * self.data["shop"][f"{json_name}_dmg"])
+
+        irs_agent.health -= damage
+
+        self.damage_numbers.append(self.ui.add(DamageNumberLabel(irs_agent.left, irs_agent.top, damage)))
+
+        if irs_agent.health <= 0:
+            self.spritelist.remove(irs_agent)
+            self.irs_agents.remove(irs_agent)
+            self.evaded_tax += irs_agent.tax / 2
+            self.update_evasion_level()
+
+        self.camera_shake.start()
+
+    def ability(self, ability):
+        if self.mana >= ABILITIES[ability][1] and time.perf_counter() - self.last_ability_timers.get(ability, 9999999999) <= ABILITIES[ability][0]:
+            self.mana -= ABILITIES[ability][1]
+            self.last_ability_timers[ability] = time.perf_counter()
+
+            if ability == "dash":
+                self.player.position += self.player.direction * (PLAYER_SPEED + self.data.get('shop', {}).get('player_speed', 0)) * 30
+            elif ability == "tax_shield":
+                self.tax_shield += 750
+            elif ability == "audit_bomb":
+                for irs_agent in self.irs_agents:
+                    if arcade.math.Vec2(self.player.center_x, self.player.center_y).distance((irs_agent.center_x, irs_agent.center_y)) <= 250:
+                        for i in range(3):
+                            if irs_agent in self.irs_agents: # if they died the first or second time, they cant be damaged again
+                                self.damage_irs_agent(irs_agent)
+            elif ability == "freeze_audit":
+                self.last_immobilization = time.perf_counter()
+                self.immobilize_irs = True
 
     def spawn_bullet(self, direction):
         bullet = Bullet(INVENTORY_ITEMS[self.inventory.current_inventory_item][3], getattr(utils.preload, INVENTORY_ITEMS[self.inventory.current_inventory_item][4]), self.player.center_x, self.player.center_y, direction)
@@ -157,35 +223,46 @@ class Game(arcade.gui.UIView):
 
         x = base_x + (math.cos(angle) * amount)
         y = base_y + (math.sin(angle) * amount)
+        atk_speed, speed, health, tax = random.choice(IRS_AGENT_TYPES)
 
-        irs_agent = IRSAgent(x, y)
-        irs_agent.health = IRS_AGENT_HEALTH + (HEALTH_INCREASE_PER_LEVEL * self.get_current_level_int())
-
-        self.irs_agents.append(irs_agent)
-        self.spritelist.append(irs_agent)
+        agent = IRSAgent(x, y)
+        agent.attack_speed = atk_speed - (ATTACK_INTERVAL_DECREASE_PER_LEVEL * self.get_current_level_int())
+        agent.speed = speed + (SPEED_INCREASE_PER_LEVEL * self.get_current_level_int())
+        agent.health = health + (HEALTH_INCREASE_PER_LEVEL * self.get_current_level_int())
+        agent.tax = tax + (TAX_INCREASE_PER_LEVEL * self.get_current_level_int())
+        
+        self.irs_agents.append(agent)
+        self.spritelist.append(agent)
 
     def on_update(self, delta_time):
+        if self.immobilize_irs and time.perf_counter() - self.last_immobilization >= 4:
+            self.immobilize_irs = False
+
+        for damage_number_label in self.damage_numbers:
+            damage_number_label.update()
+
+            if damage_number_label.finished:
+                self.damage_numbers.remove(damage_number_label)
+                self.ui.remove(damage_number_label)
+                
+        self.camera_shake.update(delta_time)
         self.player.update_animation()
 
         if self.window.keyboard[arcade.key.W]:
             self.player.direction = arcade.math.Vec2(self.player.direction.x, 1)
-            if not self.player.animation == (dark_wizard_up_animation if self.data["shop"]["dark_mode_wizard"] else light_wizard_up_animation): # this is needed because the animation property will reset to the first frame, so animation doesnt work.
-                self.player.animation = (dark_wizard_up_animation if self.data["shop"]["dark_mode_wizard"] else light_wizard_up_animation)
+            self.player.set_player_animation(dark_wizard_up_animation if self.data["shop"]["dark_mode_wizard"] else light_wizard_up_animation)
         elif self.window.keyboard[arcade.key.S]:
             self.player.direction = arcade.math.Vec2(self.player.direction.x, -1)
-            if not self.player.animation == (dark_wizard_standing_animation if self.data["shop"]["dark_mode_wizard"] else light_wizard_standing_animation): # this is needed because the animation property will reset to the first frame, so animation doesnt work.
-                self.player.animation = (dark_wizard_standing_animation if self.data["shop"]["dark_mode_wizard"] else light_wizard_standing_animation)
+            self.player.set_player_animation(dark_wizard_standing_animation if self.data["shop"]["dark_mode_wizard"] else light_wizard_standing_animation)
         else:
             self.player.direction = arcade.math.Vec2(self.player.direction.x, 0)
 
         if self.window.keyboard[arcade.key.D]:
             self.player.direction = arcade.math.Vec2(1, self.player.direction.y)
-            if not self.player.animation == (dark_wizard_right_animation if self.data["shop"]["dark_mode_wizard"] else light_wizard_right_animation): # this is needed because the animation property will reset to the first frame, so animation doesnt work.
-                self.player.animation = (dark_wizard_right_animation if self.data["shop"]["dark_mode_wizard"] else light_wizard_right_animation)
+            self.player.set_player_animation(dark_wizard_right_animation if self.data["shop"]["dark_mode_wizard"] else light_wizard_right_animation)
         elif self.window.keyboard[arcade.key.A]:
             self.player.direction = arcade.math.Vec2(-1, self.player.direction.y)
-            if not self.player.animation == (dark_wizard_left_animation if self.data["shop"]["dark_mode_wizard"] else light_wizard_left_animation): # this is needed because the animation property will reset to the first frame, so animation doesnt work.
-                self.player.animation = (dark_wizard_left_animation if self.data["shop"]["dark_mode_wizard"] else light_wizard_left_animation)
+            self.player.set_player_animation(dark_wizard_left_animation if self.data["shop"]["dark_mode_wizard"] else light_wizard_left_animation)
         else:
             self.player.direction = arcade.math.Vec2(0, self.player.direction.y)
 
@@ -229,26 +306,35 @@ class Game(arcade.gui.UIView):
             self.mana += 5
             
             self.mana_label.text = f"Mana: {self.mana}"
+        
+        if not self.immobilize_irs:
+            for irs_agent in self.irs_agents:
+                irs_agent.update()
 
-        self.camera_shake.update(delta_time)
+                wizard_pos_vec = arcade.math.Vec2(self.player.center_x, self.player.center_y)
 
-        for irs_agent in self.irs_agents:
-            irs_agent.update()
+                if wizard_pos_vec.distance(irs_agent.position) <= self.player.width / 2:
+                    if time.perf_counter() - irs_agent.last_attack >= irs_agent.attack_speed:
+                        irs_agent.last_attack = time.perf_counter()
 
-            wizard_pos_vec = arcade.math.Vec2(self.player.center_x, self.player.center_y)
+                        self.camera_shake.start()
 
-            if wizard_pos_vec.distance(irs_agent.position) <= self.player.width / 2:
-                if time.perf_counter() - irs_agent.last_attack >= IRS_AGENT_ATTACK_SPEED:
-                    irs_agent.last_attack = time.perf_counter()
+                        if not self.tax_shield > 0:
+                            self.evaded_tax -= irs_agent.tax
+                        else:
+                            if irs_agent.tax > self.tax_shield:
+                                self.evaded_tax -= irs_agent.tax - self.tax_shield
+                                self.tax_shield = 0
+                            else:
+                                self.tax_shield -= irs_agent.tax
 
-                    self.camera_shake.start()
-                    
-                    self.evaded_tax -= TAX_PER_IRS_AGENT + (TAX_INCREASE_PER_LEVEL * self.get_current_level_int())
-                    self.update_evasion_level()
-            else:
-                direction = (wizard_pos_vec - irs_agent.position).normalize()
-                irs_agent.angle = -math.degrees(direction.heading())
-                irs_agent.position += direction * (IRS_AGENT_SPEED + (SPEED_INCREASE_PER_LEVEL * self.get_current_level_int()))
+                        self.damage_numbers.append(self.ui.add(DamageNumberLabel(self.player.left, self.player.top, irs_agent.tax)))
+        
+                        self.update_evasion_level()
+                else:
+                    direction = (wizard_pos_vec - irs_agent.position).normalize()
+                    irs_agent.angle = -math.degrees(direction.heading())
+                    irs_agent.position += direction * irs_agent.speed
 
         for bullet in self.bullets:
             bullet.move()
@@ -257,21 +343,9 @@ class Game(arcade.gui.UIView):
 
             for irs_agent in self.irs_agents:
                 if arcade.math.Vec2(bullet.center_x, bullet.center_y).distance((irs_agent.center_x, irs_agent.center_y)) <= (irs_agent.width / 2 + bullet.radius):
-                    irs_agent.damaged = True
-                    irs_agent.last_damage = time.perf_counter()
-                    
+                    self.damage_irs_agent(irs_agent)
                     damage = item_list[2] + (item_list[2] / 10 * self.data["shop"][f"{json_name}_dmg"])
-
                     irs_agent.position += bullet.direction * damage * 1.5
-                    irs_agent.health -= damage
-
-                    if irs_agent.health <= 0:
-                        self.spritelist.remove(irs_agent)
-                        self.irs_agents.remove(irs_agent)
-                        self.evaded_tax += (TAX_PER_IRS_AGENT / 4) + ((TAX_INCREASE_PER_LEVEL / 4) * self.get_current_level_int())
-                        self.update_evasion_level()
-
-                    self.camera_shake.start()
                     hit = True
 
             if hit or bullet.center_x + bullet.radius / 2 > self.window.width or bullet.center_x - bullet.radius / 2 < 0 or bullet.center_y + bullet.radius / 2 > self.window.height or bullet.center_y - bullet.height / 2 < 0:
@@ -299,8 +373,6 @@ class Game(arcade.gui.UIView):
             with open("data.json", "w") as file:
                 file.write(json.dumps(self.data, indent=4))
 
-            arcade.set_background_color(menu_background_color)
-
             from menus.main import Main
             self.window.show_view(Main(self.pypresence_client))
         elif symbol in INVENTORY_TRIGGER_KEYS:
@@ -308,7 +380,13 @@ class Game(arcade.gui.UIView):
         elif symbol == arcade.key.P:
             self.pay_tax()
         elif symbol == arcade.key.TAB:
-            self.dash()
+            self.ability("dash")
+        elif symbol == arcade.key.T:
+            self.ability("tax_shield")
+        elif symbol == arcade.key.B:
+            self.ability("audit_bomb")
+        elif symbol == arcade.key.F:
+            self.ability("freeze_audit")
 
     def on_resize(self, width: int, height: int):
         super().on_resize(width, height)
