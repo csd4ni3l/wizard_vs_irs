@@ -1,5 +1,7 @@
 Wizard vs IRS is a game where as a wizard, **you have to escape taxes by defending yourself** from IRS agents.
 
+You can install from PyPI as `pip3 install wizard-vs-irs` and run as `python3 -m wizard-vs-irs` or for UV, `uv tool run wizard-vs-irs`
+
 For each IRS agent you defend, you evade some taxes, and after defending enough, you climb to a new level of tax evasion.
 
 Currently, you have Fireball, Ball of Lightning and Ice Blast as spells/weapons you can use.
