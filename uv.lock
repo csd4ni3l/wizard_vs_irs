@@ -205,7 +205,7 @@ wheels = [
 ]
 
 [[package]]
-name = "wizard-vs-irs"
+name = "wizard_vs_irs"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
