@@ -12,7 +12,8 @@ def main():
     sys.excepthook = on_exception
 
     pyglet.resource.path.append(os.getcwd())
-    pyglet.font.add_directory('./assets/fonts')
+    from importlib.resources import files
+    pyglet.font.add_directory(str(files("wizard_vs_irs") / "assets" / "fonts"))
 
     if not log_dir in os.listdir():
         os.makedirs(log_dir)

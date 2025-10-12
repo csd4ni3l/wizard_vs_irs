@@ -43,9 +43,9 @@ jobs:
         run: |
           mkdir -p zip_output
           if [ "${{ runner.os }}" = "Windows" ]; then
-            powershell.exe -Command "Compress-Archive -Path 'build/wizard_vs_irs.run.dist/*' -DestinationPath 'zip_output/WizardvsIRS-${{ runner.os }}.zip'"
+            powershell.exe -Command "Compress-Archive -Path 'build/run.dist/*' -DestinationPath 'zip_output/WizardvsIRS-${{ runner.os }}.zip'"
           else
-            cd build/wizard_vs_irs.run.dist
+            cd build/run.dist
             zip -r "../../zip_output/WizardvsIRS-${{ runner.os }}.zip" .
           fi
 
