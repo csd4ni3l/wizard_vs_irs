@@ -1,8 +1,8 @@
 import arcade, arcade.gui, asyncio, pypresence, time, copy, json, os
 
-from utils.preload import button_texture, button_hovered_texture
-from utils.constants import big_button_style, discord_presence_id
-from utils.utils import FakePyPresence
+from wizard_vs_irs.utils.preload import button_texture, button_hovered_texture
+from wizard_vs_irs.utils.constants import big_button_style, discord_presence_id
+from wizard_vs_irs.utils.utils import FakePyPresence
 
 class Main(arcade.gui.UIView):
     def __init__(self, pypresence_client=None):
@@ -60,6 +60,9 @@ class Main(arcade.gui.UIView):
         if not "evaded_tax" in self.data:
             self.data["evaded_tax"] = 0
 
+        if not "shop" in self.data:
+            self.data["shop"] = {}
+
         with open("data.json", "w") as file:
             file.write(json.dumps(self.data, indent=4))
 
@@ -80,13 +83,13 @@ class Main(arcade.gui.UIView):
         self.settings_button.on_click = lambda event: self.settings()
 
     def play(self):
-        from game.play import Game
+        from wizard_vs_irs.game.play import Game
         self.window.show_view(Game(self.pypresence_client))
 
     def shop(self):
-        from menus.shop import Shop
+        from wizard_vs_irs.menus.shop import Shop
         self.window.show_view(Shop(self.pypresence_client))
 
     def settings(self):
-        from menus.settings import Settings
+        from wizard_vs_irs.menus.settings import Settings
         self.window.show_view(Settings(self.pypresence_client))

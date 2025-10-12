@@ -1,6 +1,6 @@
 import arcade, arcade.gui
 
-from utils.constants import button_style
+from wizard_vs_irs.utils.constants import button_style
 
 class Inventory(arcade.gui.UIBoxLayout):
     def __init__(self, items, window_width):

@@ -8,3 +8,16 @@ dependencies = [
  "arcade==3.2.0",
  "pypresence>=4.3.0",
 ]
+classifiers = [
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Operating System :: OS Independent",
+]
+
+[project.scripts]
+wizard_vs_irs = "wizard_vs_irs.run:main"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"

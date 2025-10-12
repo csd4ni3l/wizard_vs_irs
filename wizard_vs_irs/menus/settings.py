@@ -2,9 +2,9 @@ import copy, pypresence, json
 
 import arcade, arcade.gui
 
-from utils.constants import button_style, dropdown_style, slider_style, settings, discord_presence_id, settings_start_category
-from utils.utils import FakePyPresence
-from utils.preload import button_texture, button_hovered_texture
+from wizard_vs_irs.utils.constants import button_style, dropdown_style, slider_style, settings, discord_presence_id, settings_start_category
+from wizard_vs_irs.utils.utils import FakePyPresence
+from wizard_vs_irs.utils.preload import button_texture, button_hovered_texture
 
 from arcade.gui import UIBoxLayout, UIAnchorLayout
 
@@ -276,7 +276,7 @@ class Settings(arcade.gui.UIView):
         element.texture = button_texture
 
     def main_exit(self):
-        from menus.main import Main
+        from wizard_vs_irs.menus.main import Main
         self.window.show_view(Main(self.pypresence_client, *self.args))
 
     def ui_cleanup(self):

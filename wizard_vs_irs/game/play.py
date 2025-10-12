@@ -1,6 +1,6 @@
 import arcade, arcade.gui, random, math, time, json, math
 
-from utils.constants import (
+from wizard_vs_irs.utils.constants import (
     ABILITIES,
     ATTACK_INTERVAL_DECREASE_PER_LEVEL,
     BULLET_SPEED,
@@ -19,12 +19,12 @@ from utils.constants import (
     TAX_INCREASE_PER_LEVEL,
 )
 
-import utils.preload
-from utils.preload import irs_agent_texture
-from utils.preload import light_wizard_left_animation, light_wizard_right_animation, light_wizard_standing_animation, light_wizard_up_animation
-from utils.preload import dark_wizard_left_animation, dark_wizard_right_animation, dark_wizard_standing_animation, dark_wizard_up_animation
+import wizard_vs_irs.utils.preload
+from wizard_vs_irs.utils.preload import irs_agent_texture
+from wizard_vs_irs.utils.preload import light_wizard_left_animation, light_wizard_right_animation, light_wizard_standing_animation, light_wizard_up_animation
+from wizard_vs_irs.utils.preload import dark_wizard_left_animation, dark_wizard_right_animation, dark_wizard_standing_animation, dark_wizard_up_animation
 
-from game.inventory import Inventory
+from wizard_vs_irs.game.inventory import Inventory
 
 class Bullet(arcade.Sprite):
     def __init__(self, radius, texture, x, y, direction):
@@ -117,7 +117,7 @@ class Game(arcade.gui.UIView):
         self.last_ability_timers = {}
 
         self.bullets: list[Bullet] = []
-        self.player = Player(self.window.width / 2, self.window.height / 2, self.data["shop"]["dark_mode_wizard"])
+        self.player = Player(self.window.width / 2, self.window.height / 2, self.data["shop"].get("dark_mode_wizard", 0))
         self.spritelist.append(self.player)
 
         self.info_box = self.anchor.add(arcade.gui.UIBoxLayout(space_between=0, align="left"), anchor_x="left", anchor_y="top")
@@ -136,10 +136,10 @@ class Game(arcade.gui.UIView):
         self.progress_bar.on_event = lambda event: None
 
         self.ability_info_label = self.anchor.add(arcade.gui.UILabel(text=f"""Abilities:
-Dash (tab): {ABILITIES['dash'][1]} Mana
-Tax Shield (t): {ABILITIES["tax_shield"][1]} Mana
-Audit Bomb (b): {ABILITIES["audit_bomb"][1]} Mana
-Freeze Audit (f): {ABILITIES["freeze_audit"][1]} Mana""", font_size=20, multiline=True), 
+Dash (tab): {ABILITIES['dash']} Mana
+Tax Shield (t): {ABILITIES["tax_shield"]} Mana
+Audit Bomb (b): {ABILITIES["audit_bomb"]} Mana
+Freeze Audit (f): {ABILITIES["freeze_audit"]} Mana""", font_size=20, multiline=True), 
 anchor_x="right", anchor_y="bottom", align_x=-5)
 
         self.inventory = self.anchor.add(Inventory(INVENTORY_ITEMS, self.window.width), anchor_x="left", anchor_y="bottom", align_x=self.window.width / 20)
@@ -187,7 +187,7 @@ anchor_x="right", anchor_y="bottom", align_x=-5)
                 self.immobilize_irs = True
 
     def spawn_bullet(self, direction):
-        bullet = Bullet(INVENTORY_ITEMS[self.inventory.current_inventory_item][3], getattr(utils.preload, INVENTORY_ITEMS[self.inventory.current_inventory_item][4]), self.player.center_x, self.player.center_y, direction)
+        bullet = Bullet(INVENTORY_ITEMS[self.inventory.current_inventory_item][3], getattr(wizard_vs_irs.utils.preload, INVENTORY_ITEMS[self.inventory.current_inventory_item][4]), self.player.center_x, self.player.center_y, direction)
         bullet.speed = BULLET_SPEED + self.data.get('shop', {}).get("bullet_speed", 0)
         self.bullets.append(bullet)
         self.spritelist.append(bullet)
@@ -265,19 +265,19 @@ anchor_x="right", anchor_y="bottom", align_x=-5)
 
         if self.window.keyboard[arcade.key.W]:
             self.player.direction = arcade.math.Vec2(self.player.direction.x, 1)
-            self.player.set_player_animation(dark_wizard_up_animation if self.data["shop"]["dark_mode_wizard"] else light_wizard_up_animation)
+            self.player.set_player_animation(dark_wizard_up_animation if self.data["shop"].get("dark_mode_wizard", False) else light_wizard_up_animation)
         elif self.window.keyboard[arcade.key.S]:
             self.player.direction = arcade.math.Vec2(self.player.direction.x, -1)
-            self.player.set_player_animation(dark_wizard_standing_animation if self.data["shop"]["dark_mode_wizard"] else light_wizard_standing_animation)
+            self.player.set_player_animation(dark_wizard_standing_animation if self.data["shop"].get("dark_mode_wizard", False) else light_wizard_standing_animation)
         else:
             self.player.direction = arcade.math.Vec2(self.player.direction.x, 0)
 
         if self.window.keyboard[arcade.key.D]:
             self.player.direction = arcade.math.Vec2(1, self.player.direction.y)
-            self.player.set_player_animation(dark_wizard_right_animation if self.data["shop"]["dark_mode_wizard"] else light_wizard_right_animation)
+            self.player.set_player_animation(dark_wizard_right_animation if self.data["shop"].get("dark_mode_wizard", False) else light_wizard_right_animation)
         elif self.window.keyboard[arcade.key.A]:
             self.player.direction = arcade.math.Vec2(-1, self.player.direction.y)
-            self.player.set_player_animation(dark_wizard_left_animation if self.data["shop"]["dark_mode_wizard"] else light_wizard_left_animation)
+            self.player.set_player_animation(dark_wizard_left_animation if self.data["shop"].get("dark_mode_wizard", False) else light_wizard_left_animation)
         else:
             self.player.direction = arcade.math.Vec2(0, self.player.direction.y)
 
@@ -309,7 +309,7 @@ anchor_x="right", anchor_y="bottom", align_x=-5)
 
             direction = (mouse_pos - player_pos).normalize()
 
-            inaccuracy = random.randint(-(PLAYER_INACCURACY_MAX - self.data["shop"]["inaccuracy_decrease"]), (PLAYER_INACCURACY_MAX - self.data["shop"]["inaccuracy_decrease"]))
+            inaccuracy = random.randint(-(PLAYER_INACCURACY_MAX - self.data["shop"].get("inaccuracy_decrease", 0)), (PLAYER_INACCURACY_MAX - self.data["shop"].get("inaccuracy_decrease", 0)))
             self.spawn_bullet(direction.rotate(math.radians(inaccuracy)))
 
         if self.tax_evasion_level_notice.visible and time.perf_counter() - self.last_tax_evasion_notice >= 2.5:
@@ -388,7 +388,7 @@ anchor_x="right", anchor_y="bottom", align_x=-5)
             with open("data.json", "w") as file:
                 file.write(json.dumps(self.data, indent=4))
 
-            from menus.main import Main
+            from wizard_vs_irs.menus.main import Main
             self.window.show_view(Main(self.pypresence_client))
         elif symbol in INVENTORY_TRIGGER_KEYS:
             self.inventory.select_item(int(chr(symbol)) - 1)

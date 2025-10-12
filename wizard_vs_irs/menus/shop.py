@@ -2,8 +2,8 @@ import arcade, arcade.gui, os, json
 
 from math import ceil
 
-from utils.constants import button_style, SHOP_ITEMS
-from utils.preload import button_texture, button_hovered_texture
+from wizard_vs_irs.utils.constants import button_style, SHOP_ITEMS
+from wizard_vs_irs.utils.preload import button_texture, button_hovered_texture
 
 class Shop(arcade.gui.UIView):
     def __init__(self, pypresence_client):
@@ -29,7 +29,7 @@ class Shop(arcade.gui.UIView):
         with open("data.json", "w") as file:
             file.write(json.dumps(self.data, indent=4))
 
-        from menus.main import Main
+        from wizard_vs_irs.menus.main import Main
         self.window.show_view(Main(self.pypresence_client))
 
     def on_show_view(self):
