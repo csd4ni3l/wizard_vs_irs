@@ -1,8 +1,23 @@
 import arcade, arcade.gui, random, math, time, json, math
 
-from utils.constants import BULLET_SPEED, HEALTH_INCREASE_PER_LEVEL, PLAYER_SPEED, IRS_AGENT_TYPES, ATTACK_INTERVAL_DECREASE_PER_LEVEL, ABILITIES
-from utils.constants import IRS_AGENT_SPAWN_INTERVAL, SPAWN_INTERVAL_DECREASE_PER_LEVEL, SPEED_INCREASE_PER_LEVEL, item_to_json_name
-from utils.constants import TAX_EVASION_LEVELS, TAX_EVASION_NAMES, TAX_INCREASE_PER_LEVEL, menu_background_color, INVENTORY_ITEMS, INVENTORY_TRIGGER_KEYS, PLAYER_INACCURACY_MAX
+from utils.constants import (
+    ABILITIES,
+    ATTACK_INTERVAL_DECREASE_PER_LEVEL,
+    BULLET_SPEED,
+    HEALTH_INCREASE_PER_LEVEL,
+    INVENTORY_ITEMS,
+    INVENTORY_TRIGGER_KEYS,
+    IRS_AGENT_SPAWN_INTERVAL,
+    IRS_AGENT_TYPES,
+    item_to_json_name,  # if it's a variable, better to keep original case
+    PLAYER_INACCURACY_MAX,
+    PLAYER_SPEED,
+    SPAWN_INTERVAL_DECREASE_PER_LEVEL,
+    SPEED_INCREASE_PER_LEVEL,
+    TAX_EVASION_LEVELS,
+    TAX_EVASION_NAMES,
+    TAX_INCREASE_PER_LEVEL,
+)
 
 import utils.preload
 from utils.preload import irs_agent_texture
@@ -138,7 +153,7 @@ anchor_x="right", anchor_y="bottom", align_x=-5)
 
         json_name = item_to_json_name[item_list[0]]
 
-        damage = item_list[2] + (item_list[2] / 10 * self.data["shop"][f"{json_name}_dmg"])
+        damage = item_list[2] + (item_list[2] / 10 * self.data["shop"].get(f"{json_name}_dmg", 0))
 
         irs_agent.health -= damage
 
@@ -153,8 +168,8 @@ anchor_x="right", anchor_y="bottom", align_x=-5)
         self.camera_shake.start()
 
     def ability(self, ability):
-        if self.mana >= ABILITIES[ability][1] and time.perf_counter() - self.last_ability_timers.get(ability, 9999999999) <= ABILITIES[ability][0]:
-            self.mana -= ABILITIES[ability][1]
+        if self.mana >= ABILITIES[ability]:
+            self.mana -= ABILITIES[ability]
             self.last_ability_timers[ability] = time.perf_counter()
 
             if ability == "dash":
@@ -282,7 +297,7 @@ anchor_x="right", anchor_y="bottom", align_x=-5)
 
         json_name = item_to_json_name[item_list[0]]
 
-        if time.perf_counter() - self.last_shoot >= item_list[1] - ((item_list[1] / 15) * self.data["shop"][f"{json_name}_atk_speed"]):
+        if time.perf_counter() - self.last_shoot >= item_list[1] - ((item_list[1] / 15) * self.data["shop"].get(f"{json_name}_atk_speed", 0)):
             self.last_shoot = time.perf_counter()
             
             mouse_pos = arcade.math.Vec2(
@@ -344,7 +359,7 @@ anchor_x="right", anchor_y="bottom", align_x=-5)
             for irs_agent in self.irs_agents:
                 if arcade.math.Vec2(bullet.center_x, bullet.center_y).distance((irs_agent.center_x, irs_agent.center_y)) <= (irs_agent.width / 2 + bullet.radius):
                     self.damage_irs_agent(irs_agent)
-                    damage = item_list[2] + (item_list[2] / 10 * self.data["shop"][f"{json_name}_dmg"])
+                    damage = item_list[2] + (item_list[2] / 10 * self.data["shop"].get(f"{json_name}_dmg", 0))
                     irs_agent.position += bullet.direction * damage * 1.5
                     hit = True
 

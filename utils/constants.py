@@ -35,7 +35,7 @@ TAX_EVASION_LEVELS = {
     "International Watchlist": 125000,
     "Most Wanted": 250000,
     "Legendary": 500000,
-    "Mythic": 1000000
+    "THE ONE AND ONLY TAX EVADER": 1000000
 }
 TAX_EVASION_NAMES = list(TAX_EVASION_LEVELS.keys())
 
@@ -64,10 +64,10 @@ INVENTORY_ITEMS = [
 ]
 
 ABILITIES = {
-    "dash": [5, 20],
-    "tax_shield": [15, 50],
-    "audit_bomb": [20, 100],
-    "freeze_audit": [15, 150]
+    "dash": 20,
+    "tax_shield": 50,
+    "audit_bomb": 100,
+    "freeze_audit": 150
 }
 
 item_to_json_name = {
