@@ -21,7 +21,7 @@ jobs:
           architecture: "x64"
           cache: "pip"
           cache-dependency-path: |
-            **/requirements*.txt
+            requirements.txt
 
       - name: Install Dependencies
         run: pip install -r requirements.txt
@@ -30,10 +30,10 @@ jobs:
         uses: Nuitka/Nuitka-Action@main
         with:
           nuitka-version: main
-          script-name: run.py
+          script-name: wizard_vs_irs/run.py
           nofollow-import-to: "*tk*,_codecs,encodings,multiprocessing,gi"
           disable-plugins: tk-inter,dill-compat,eventlet,gevent,pyqt5,pyqt6,pyside2,pyside6,delvewheel,pywebview,matplotlib,spacy,enum-compat,pbr-compat,gevent,pmw-freezer,transformers,upx,kivy,options-nanny,multiprocessing,gi
-          include-data-dir: assets=assets
+          include-data-dir: wizard_vs_irs/assets=assets
           include-data-files: CREDITS=CREDITS
           mode: standalone
           output-file: WizardvsIRS
@@ -43,9 +43,9 @@ jobs:
         run: |
           mkdir -p zip_output
           if [ "${{ runner.os }}" = "Windows" ]; then
-            powershell.exe -Command "Compress-Archive -Path 'build/run.dist/*' -DestinationPath 'zip_output/WizardvsIRS-${{ runner.os }}.zip'"
+            powershell.exe -Command "Compress-Archive -Path 'build/wizard_vs_irs.run.dist/*' -DestinationPath 'zip_output/WizardvsIRS-${{ runner.os }}.zip'"
           else
-            cd build/run.dist
+            cd build/wizard_vs_irs.run.dist
             zip -r "../../zip_output/WizardvsIRS-${{ runner.os }}.zip" .
           fi
 
@@ -54,6 +54,7 @@ jobs:
         with:
           name: WizardvsIRS-${{ runner.os }}.zip
           path: zip_output/WizardvsIRS-${{ runner.os }}.zip
+
   release:
     name: Create GitHub Release
     needs: build
