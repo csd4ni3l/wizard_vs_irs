@@ -1,6 +1,6 @@
 [project]
-name = "wizard_vs_irs"
-version = "0.1.1"
+name = "wizard-vs-irs"
+version = "0.1.2"
 description = "Wizard vs IRS"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -16,7 +16,7 @@ classifiers = [
 ]
 
 [project.scripts]
-wizard_vs_irs = "wizard_vs_irs.run:main"
+wizard-vs-irs = "wizard_vs_irs.run:main"
 
 [build-system]
 requires = ["setuptools>=61.0"]
