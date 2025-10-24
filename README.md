@@ -1,6 +1,6 @@
 Wizard vs IRS is a game where as a wizard, **you have to escape taxes by defending yourself** from IRS agents.
 
-[![Demo Video](https://img.youtube.com/vi/OPEPoMZabS4/hqdefault.jpg)](https://youtu.be/OPEPoMZabS4)
+[![Demo Video](https://img.youtube.com/vi/LS8gdDG8taE/hqdefault.jpg)](https://youtu.be/LS8gdDG8taE)
 
 You can install from PyPI as `pip3 install wizard-vs-irs` and run as `python3 -m wizard-vs-irs` or for UV, `uv tool run wizard-vs-irs`
 
