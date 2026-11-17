@@ -1,6 +1,8 @@
 name: Build and Release
 
-on: push
+on:
+  push:
+    branches: ["**"]
 
 jobs:
   build:
@@ -70,24 +72,19 @@ jobs:
         with:
           path: downloads
 
-      - name: Delete Old Release (if exists)
-        continue-on-error: true
-        run: gh release delete latest -y
+      - name: Move latest tag and publish release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Delete Git tag (if exists)
-        continue-on-error: true
         run: |
-          git push origin :refs/tags/latest
-          git tag -d latest
-
-      - name: Recreate Git tag at HEAD
-        run: |
-          git tag latest
-          git push origin latest
-
-      - name: Create the new release
-        run: gh release create latest downloads/**/WizardvsIRS-*.zip --title "Latest Build" --notes "Most recent multi-platform builds of WizardvsIRS"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          set -euo pipefail
+          TAG="latest"
+          echo "Target release tag: $TAG (commit $GITHUB_SHA)"
+          git tag -f "$TAG" "$GITHUB_SHA"
+          git push -f origin "refs/tags/$TAG"
+          NOTES="Most recent multi-platform builds of WizardvsIRS"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release edit "$TAG" --notes "$NOTES"
+          else
+            gh release create "$TAG" --title "Latest Build" --notes "$NOTES" --verify-tag
+          fi
+          gh release upload "$TAG" downloads/**/WizardvsIRS-*.zip --clobber
