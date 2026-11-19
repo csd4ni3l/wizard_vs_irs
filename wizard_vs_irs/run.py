@@ -6,14 +6,14 @@ import logging, datetime, os, json, sys, arcade
 
 from wizard_vs_irs.utils.utils import get_closest_resolution, print_debug_info, on_exception
 from wizard_vs_irs.utils.constants import log_dir, menu_background_color
+from wizard_vs_irs.utils.paths import ASSETS_DIR
 from wizard_vs_irs.menus.main import Main
 
 def main():
     sys.excepthook = on_exception
 
     pyglet.resource.path.append(os.getcwd())
-    from importlib.resources import files
-    pyglet.font.add_directory(str(files("wizard_vs_irs") / "assets" / "fonts"))
+    pyglet.font.add_directory(str(ASSETS_DIR / "fonts"))
 
     if not log_dir in os.listdir():
         os.makedirs(log_dir)

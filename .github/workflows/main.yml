@@ -35,20 +35,28 @@ jobs:
           script-name: wizard_vs_irs/run.py
           nofollow-import-to: "*tk*,_codecs,encodings,multiprocessing,gi"
           disable-plugins: tk-inter,dill-compat,eventlet,gevent,pyqt5,pyqt6,pyside2,pyside6,delvewheel,pywebview,matplotlib,spacy,enum-compat,pbr-compat,gevent,pmw-freezer,transformers,upx,kivy,options-nanny,multiprocessing,gi
-          include-data-dir: wizard_vs_irs/assets=assets
+          include-data-dir: wizard_vs_irs/assets=wizard_vs_irs/assets
           include-data-files: CREDITS=CREDITS
-          mode: standalone
+          mode: onefile
           output-file: WizardvsIRS
 
       - name: Zip Build Output
         shell: bash
         run: |
+          set -euo pipefail
           mkdir -p zip_output
+          shopt -s nullglob
+          files=(build/WizardvsIRS*)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "No onefile output found in build/"
+            ls -la build
+            exit 1
+          fi
           if [ "${{ runner.os }}" = "Windows" ]; then
-            powershell.exe -Command "Compress-Archive -Path 'build/run.dist/*' -DestinationPath 'zip_output/WizardvsIRS-${{ runner.os }}.zip'"
+            powershell.exe -Command "Compress-Archive -Path 'build/WizardvsIRS*' -DestinationPath 'zip_output/WizardvsIRS-${{ runner.os }}.zip'"
           else
-            cd build/run.dist
-            zip -r "../../zip_output/WizardvsIRS-${{ runner.os }}.zip" .
+            cd build
+            zip -r "../zip_output/WizardvsIRS-${{ runner.os }}.zip" WizardvsIRS*
           fi
 
       - name: Upload Zipped Build Artifact

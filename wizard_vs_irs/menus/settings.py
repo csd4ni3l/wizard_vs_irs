@@ -5,6 +5,7 @@ import arcade, arcade.gui
 from wizard_vs_irs.utils.constants import button_style, dropdown_style, slider_style, settings, discord_presence_id, settings_start_category
 from wizard_vs_irs.utils.utils import FakePyPresence
 from wizard_vs_irs.utils.preload import button_texture, button_hovered_texture
+from wizard_vs_irs.utils.paths import CREDITS_PATH
 
 from arcade.gui import UIBoxLayout, UIAnchorLayout
 
@@ -249,7 +250,7 @@ class Settings(arcade.gui.UIView):
         self.key_layout.clear()
         self.value_layout.clear()
 
-        with open('CREDITS', 'r') as file:
+        with open(CREDITS_PATH, 'r') as file:
             text = file.read()
 
         if self.window.width == 3840:

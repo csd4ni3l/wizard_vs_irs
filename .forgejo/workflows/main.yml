@@ -42,7 +42,7 @@ jobs:
         run: |
           python -m nuitka \
             --assume-yes-for-downloads \
-            --include-data-dir=wizard_vs_irs/assets=assets \
+            --include-data-dir=wizard_vs_irs/assets=wizard_vs_irs/assets \
             --include-data-files=CREDITS=CREDITS \
             --mode=onefile \
             --output-filename=WizardvsIRS \
